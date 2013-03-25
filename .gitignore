@@ -37,6 +37,7 @@
 .qt-license
 .rbenv/
 .sbt/
+.Trash/
 .*_history
 .*-history
 .ssh/
