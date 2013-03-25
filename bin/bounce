@@ -1,0 +1,37 @@
+#!/usr/bin/env ruby
+
+class Array
+  def chunks_of(chunk_size)
+    chunks = Array.new
+    remainder = self.size % chunk_size
+    number_of_chunks = self.size / chunk_size + remainder
+    number_of_chunks.times do |c|
+      chunks << self[c * chunk_size, chunk_size]
+    end
+    chunks
+  end
+end
+
+def exit_with(message)
+  puts message
+  exit 1
+end
+
+def available_interfaces
+  %x{ifconfig}.scan(/^(\w+):\s.*$/).flatten
+end
+
+def available_interfaces_with_ips
+  interfaces = %x{ifconfig}.split(/^(\w+):\s/)[1..-1].chunks_of(2)
+  interfaces.collect { |pair| "#{pair[0]}\t#{pair[1].scan(/inet\s([0-9\.]+)\s/).flatten.first}" }
+end
+
+if ARGV.empty?
+  puts available_interfaces_with_ips.join("\n")
+else
+  interface=ARGV.first
+  exit_with "I only know of the following interfaces: #{available_interfaces.join(', ')}" unless available_interfaces.include? interface
+  puts "Bouncing #{interface}"
+  system "sudo ifconfig #{interface} down"
+  system "sudo ifconfig #{interface} up"
+end

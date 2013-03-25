@@ -1,0 +1,34 @@
+[user]
+	name = Lasse Koskela
+	email = lasse.koskela@reaktor.fi
+[color]
+	status = auto
+	diff = auto
+	branch = auto
+	interactive = auto
+	ui = true
+[core]
+	editor = mate -w
+	autocrlf = input
+[alias]
+	st = status
+	ci = commit -v
+	co = checkout
+	cp = cherry-pick
+	lg = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --date=relative
+	cl = log --pretty=oneline --abbrev-commit
+[rerere]
+	enabled = true
+[format]
+	numbered = auto
+[push]
+	default = tracking
+[diff]
+	tool = diffmerge
+[difftool "diffmerge"]
+	cmd = diffmerge \"$LOCAL\" \"$REMOTE\"
+[merge]
+	tool = diffmerge
+[mergetool "diffmerge"]
+	cmd = "diffmerge --merge --result=\"$MERGED\" \"$LOCAL\" \"$(if test -f \"$BASE\"; then echo \"$BASE\"; else echo \"$LOCAL\"; fi)\" \"$REMOTE\""
+	trustExitCode = true

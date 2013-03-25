@@ -1,0 +1,18 @@
+#!/bin/sh
+
+PORT="$1"
+if [ "$PORT" = "" ]; then
+  echo "Usage: $0 [port]"
+  echo ""
+  echo "Prints out the PID of the process currently bound to the given port number."
+  echo ""
+  exit 1
+fi
+
+PID=`lsof -n -t -i :$PORT`
+if [ "$PID" = "" ]; then
+  echo "No process bound to $PORT at the moment."
+  exit 1
+fi
+OUTPUT=`ps -wef $PID`
+echo $OUTPUT

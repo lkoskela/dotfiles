@@ -1,0 +1,10 @@
+#!/bin/bash
+
+if [ -f "/proc/cpuinfo" ]; then
+  cat /proc/cpuinfo | grep 'cpu cores' | head -n 1 | awk '{print $4}'
+elif [ -s "$(which sysctl)" ]; then
+  sysctl -n hw.ncpu
+else
+  echo "Couldn't find /proc/cpuinfo or sysctl."
+  exit 1
+fi
