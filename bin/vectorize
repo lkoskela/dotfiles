@@ -1,0 +1,80 @@
+#!/usr/bin/env ruby
+
+require 'tempfile'
+
+def require_binaries(*names_of_binaries)
+  names_of_binaries.each do |binary|
+    %x[which #{binary}]
+    raise "It seems like `#{binary}` is not in PATH. Aborting." unless $?.to_i == 0
+  end
+end
+
+class ImageFile
+  def initialize(path)
+    raise "No such file: #{path}" unless File.file?(path)
+    image_file = File.absolute_path(path)
+    @data = {
+      :absolute_path => image_file,
+      :location => File.dirname(image_file),
+      :extension => File.extname(image_file),
+      :basename => File.basename(image_file, File.extname(image_file)),
+    }
+  end
+
+  def path(extension = nil)
+    return @data[:absolute_path] if extension.nil?
+    path_without_extension = File.join(@data[:location], @data[:basename])
+    extension = ".#{extension}" unless extension.start_with?('.')
+    return "#{path_without_extension}#{extension}"
+  end
+
+  def to_s
+    @data
+  end
+end
+
+def execute_sequence(*commands)
+  commands.each do |command|
+    puts command
+    %x[#{command}]
+    break unless $?.to_i == 0
+  end
+end
+
+def tempdir
+  return '/tmp' if File.directory? '/tmp'
+  return '/temp' if File.directory? '/temp'
+  Dir.tmpdir
+end
+
+def tempfile(suffix = '.tmp')
+  basename = File.basename(Tempfile.new(['', suffix]).path)
+  File.join(tempdir, basename)
+end
+
+def vectorize(image_file)
+  require_binaries('convert', 'potrace', 'svg2png')
+
+  source_image = ImageFile.new(image_file)
+  bmp_file = tempfile('.bmp')  # source_image.path('bmp')
+  svg_file = tempfile('.svg')  # source_image.path('svg')
+  png_file = tempfile('.png')  # source_image.path('png')
+
+  execute_sequence(
+  	"convert #{source_image.path} #{bmp_file}",
+    "potrace -s -o #{svg_file} #{bmp_file}",
+    "svg2png -w 1600 #{svg_file} #{png_file}",
+    "cp #{png_file} #{source_image.path('png')}"
+  )
+  puts source_image.path('png') if $?.to_i == 0
+end
+
+def usage
+  puts "Usage: #{__FILE__} [image file to vectorize]"
+  exit 1
+end
+
+usage if ARGV.length < 1
+usage unless File.file? ARGV.first
+
+vectorize(ARGV.first)

@@ -1,0 +1,2 @@
+#!/bin/bash
+printf "\e[8;700;700;t"

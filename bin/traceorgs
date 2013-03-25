@@ -1,0 +1,27 @@
+#!/usr/bin/env ruby
+
+def show_usage
+  puts "Usage: #{File.basename(__FILE__)} [hostname]"
+  exit 1
+end
+
+def whois(address)
+  %x[whois #{address}].split("\n").each do |line|
+    if line =~ /^OrgName:\s+(.*?)$/
+      return $1
+    end
+  end
+  address
+end
+
+show_usage if ARGV.empty?
+
+%x[traceroute #{ARGV.first}].split("\n").each do |line|
+  if line =~ /^.*\((\d+\.\d+\.\d+\.\d+)\).*$/
+    ip = $1
+    fixed_length_ip = "%-15s" % ip
+    puts "#{fixed_length_ip} (#{whois(ip)})"
+  end
+end
+
+

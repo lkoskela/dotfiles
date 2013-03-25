@@ -1,0 +1,6 @@
+#!/bin/bash
+#
+# here's also one alternative solution without the grep:
+#svn status $@ | grep ^\? | awk '{print $2}'
+
+svn status $@ | awk '$1 == "?" { print $2 }'

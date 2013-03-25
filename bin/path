@@ -1,0 +1,2 @@
+#!/usr/bin/env ruby
+ENV['PATH'].split(':').each { |e| puts e }

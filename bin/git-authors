@@ -1,0 +1,19 @@
+#!/usr/bin/env ruby
+
+repo_path = Dir.pwd
+if ARGV.length > 0
+  repo_path = File.expand_path(ARGV.first)
+  Dir.chdir repo_path
+  raise "No such directory: #{repo_path}" unless File.exist?(repo_path)
+end
+
+%x[git status 2> /dev/null]
+if $? != 0
+  puts "Not inside a Git repository: #{Dir.pwd}"
+  exit 1
+end
+
+files = ["java", "scala", "js"].map {|lang| Dir.glob("**/*.#{lang}") }.flatten.sort
+blames = files.map {|f| %x[git blame -b '#{f}'] }
+authors = blames.map {|b| b.scan(/^\w{8}\s\((.*?)\s{1,10}\d+/) }.flatten.map {|name| name.strip }.uniq.sort
+puts authors.join("\n")
