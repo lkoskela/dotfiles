@@ -34,3 +34,6 @@ export GREP_OPTIONS='--color=auto'
 
 ### Added by the Heroku Toolbelt
 export PATH="/usr/local/heroku/bin:$PATH"
+
+### NodeJS stuff
+[[ -e /usr/local/share/npm/bin ]] && export PATH="$PATH:/usr/local/share/npm/bin"
