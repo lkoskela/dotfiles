@@ -24,7 +24,8 @@ WHITE=$'\[\033[1;37m\]'
 # The common prompt prefix #
 ############################
 #BASEPROMPT="${RED}\u${LIGHT_GRAY}@${GREEN}\h ${BROWN}\$(short_pwd)"
-BASEPROMPT="${RED}\u${LIGHT_GRAY} ${BROWN}\$(short_pwd)"
+#BASEPROMPT="${RED}\u${LIGHT_GRAY} ${BROWN}\$(short_pwd)"
+BASEPROMPT="${RED}\u${LIGHT_GRAY} ${BROWN}\W"
 
 ####################
 # Git-aware prompt #
