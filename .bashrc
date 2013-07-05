@@ -27,10 +27,11 @@ rake() { if [ -e ./Gemfile.lock ]; then bundle exec rake "$@"; else /usr/bin/env
 psgrep() { ps axu | grep -v grep | grep "$@" -i --color=auto; }
 
 # Aliases
-alias mvn-eclipse="mvn eclipse:eclipse -DdownloadSources=true -DdownloadJavadocs=true"
 alias ll="ls -lAFGh"
+[[ -e "$(which mvn)" ]] && alias mvn-eclipse="mvn eclipse:eclipse -DdownloadSources=true -DdownloadJavadocs=true"
 [[ -e "/Applications/VLC.app/Contents/MacOS/VLC" ]] && alias vlc="/Applications/VLC.app/Contents/MacOS/VLC"
 [[ -e /usr/bin/open ]] && alias firefox="open -a firefox"
+[[ -e "$(which svn)" ]] && alias svn-log-oneline="svn log | perl -l40pe 's/^-+/\n/'"
 
 # Enable color output for grep
 export GREP_OPTIONS='--color=auto'
