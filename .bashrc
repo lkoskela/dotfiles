@@ -14,6 +14,9 @@ else
   [[ -e ~/.linux ]] && source ~/.linux
 fi
 
+# Initialize JAVA_HOME
+export JAVA_HOME="$(/usr/libexec/java_home)"
+
 # Initialize rbenv (Ruby runtimes)
 eval "$(rbenv init -)"
 
