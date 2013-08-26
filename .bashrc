@@ -17,6 +17,9 @@ fi
 # Initialize JAVA_HOME
 export JAVA_HOME="$(/usr/libexec/java_home)"
 
+# Initialize ANDROID_SDK_ROOT
+export ANDROID_SDK_ROOT="/usr/local/android-sdk"
+
 # Initialize rbenv (Ruby runtimes)
 eval "$(rbenv init -)"
 
