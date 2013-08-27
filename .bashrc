@@ -9,8 +9,8 @@ export INPUTRC=~/.inputrc
 
 # Initialize language and locale variables
 export LC_CTYPE="UTF-8"
-export LC_ALL="fi_FI.UTF-8"
-export LANG="fi_FI.UTF-8"
+export LC_ALL="en_US.UTF-8"
+export LANG="en_US.UTF-8"
 
 # Source platform-specific configurations
 if [ "$(uname)" == "Darwin" ] ; then
