@@ -25,6 +25,7 @@
 .hours/
 .ivy2/
 .jline-clojure.*
+.keystore
 .lein/
 .lesshst
 .m2/
