@@ -7,6 +7,11 @@ source /usr/local/etc/bash_completion.d/git-completion.bash
 # Initialize Bash keybindings and stuff
 export INPUTRC=~/.inputrc
 
+# Initialize language and locale variables
+export LC_CTYPE="UTF-8"
+export LC_ALL="fi_FI.UTF-8"
+export LANG="fi_FI.UTF-8"
+
 # Source platform-specific configurations
 if [ "$(uname)" == "Darwin" ] ; then
   [[ -e ~/.osx ]] && source ~/.osx
