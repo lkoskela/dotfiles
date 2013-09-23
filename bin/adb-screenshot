@@ -1,0 +1,14 @@
+#!/usr/bin/env ruby
+
+PREFIX="#{ENV['HOME']}/Downloads/screenshot"
+output_file=""
+ordinal=1
+begin
+  output_file="#{PREFIX}-#{ordinal}.png"
+  ordinal += 1
+end while File.exist?(output_file)
+
+%x[adb -d shell /system/bin/screencap -p /sdcard/screenshot.png]
+%x[adb pull /sdcard/screenshot.png #{output_file}]
+
+puts "Pulled screenshot from device to #{output_file}"

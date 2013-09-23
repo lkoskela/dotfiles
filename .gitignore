@@ -51,3 +51,5 @@
 .vpn/
 .yard/
 */
+bin/mate
+!bin/
