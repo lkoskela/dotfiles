@@ -37,6 +37,7 @@
 .pow
 .qt-license
 .rbenv/
+.rnd
 .sbt/
 .Trash/
 .*_history
