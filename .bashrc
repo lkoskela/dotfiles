@@ -7,6 +7,13 @@ source /usr/local/etc/bash_completion.d/git-completion.bash
 # Initialize Bash keybindings and stuff
 export INPUTRC=~/.inputrc
 
+# Export EDITOR variables
+export EDITOR="vi"
+if [[ -e "$(which mate)" ]]; then
+  export GIT_EDITOR="mate -w"
+  export SVN_EDITOR="mate -w"
+fi
+
 # Initialize language and locale variables
 export LC_CTYPE="UTF-8"
 export LC_ALL="en_US.UTF-8"
@@ -22,12 +29,17 @@ fi
 # Initialize JAVA_HOME
 export JAVA_HOME="$(/usr/libexec/java_home)"
 
-# Initialize ANDROID_SDK_ROOT
-export ANDROID_SDK_ROOT="/usr/local/android-sdk"
+# Initialize Android SDK stuff
+export ANDROID_SDK_ROOT="/usr/local/opt/android-sdk"
+export ANDROID_HOME="/usr/local/opt/android-sdk"
+alias adb-restart="adb kill-server && adb start-server && adb devices"
 
 # Initialize rbenv (Ruby runtimes)
 [[ -e "$(which rbenv)" ]] && eval "$(rbenv init -)"
-if [[ -e $HOME/.rvm/bin ]]; then
+
+# Initialize RVM (Ruby runtimes)
+if [[ -e "$HOME/.rvm" ]]; then
+  [[ -s "$HOME/.rvm/scripts/rvm" ]] && source "$HOME/.rvm/scripts/rvm"
   PATH=$PATH:$HOME/.rvm/bin # Add RVM to PATH for scripting
 fi
 
@@ -48,7 +60,8 @@ alias ll="ls -lAFGh"
 export GREP_OPTIONS='--color=auto'
 
 ### Added by the Heroku Toolbelt
-export PATH="/usr/local/heroku/bin:$PATH"
+[[ -e "/usr/local/heroku" ]] && export PATH="/usr/local/heroku/bin:$PATH"
 
 ### NodeJS stuff
 [[ -e /usr/local/share/npm/bin ]] && export PATH="$PATH:/usr/local/share/npm/bin"
+
