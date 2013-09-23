@@ -26,7 +26,10 @@ export JAVA_HOME="$(/usr/libexec/java_home)"
 export ANDROID_SDK_ROOT="/usr/local/android-sdk"
 
 # Initialize rbenv (Ruby runtimes)
-eval "$(rbenv init -)"
+[[ -e "$(which rbenv)" ]] && eval "$(rbenv init -)"
+if [[ -e $HOME/.rvm/bin ]]; then
+  PATH=$PATH:$HOME/.rvm/bin # Add RVM to PATH for scripting
+fi
 
 # Automatically invoke bundler for rake, if necessary.
 rake() { if [ -e ./Gemfile.lock ]; then bundle exec rake "$@"; else /usr/bin/env rake "$@"; fi; }
