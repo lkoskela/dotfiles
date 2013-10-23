@@ -1,6 +1,7 @@
 #!/usr/bin/env ruby
 
 BACKUP_DIR = File.expand_path("./backups")
+$backups_taken = 0
 
 def backup_path(path)
   candidate = File.expand_path(path)
@@ -13,11 +14,12 @@ def backup_path(path)
 end
 
 def backup_previous_version_of(link)
-  if File.exist?(link)
-    %x[mkdir -p #{BACKUP_DIR}] unless File.directory?(BACKUP_DIR)
-    backup = backup_path(BACKUP_DIR + '/' + File.basename(link))
-    %x[mv #{link} #{backup}]
-  end
+  return unless File.exist?(link)
+  %x[mkdir -p #{BACKUP_DIR}] unless File.directory?(BACKUP_DIR)
+  backup = backup_path(BACKUP_DIR + '/' + File.basename(link))
+  %x[cp -R -H #{link} #{backup}]
+  %x[rm #{link}]
+  $backups_taken += 1 
 end
 
 Dir.glob("./.*").push(Dir.glob("./*")).flatten.each do |f|
@@ -30,3 +32,5 @@ Dir.glob("./.*").push(Dir.glob("./*")).flatten.each do |f|
   backup_previous_version_of(link)
   %x[ln -s #{link_target} #{link}]
 end
+
+puts "Backups of old dotfiles can be found in #{BACKUP_DIR}" if $backups_taken > 0
