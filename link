@@ -1,5 +1,7 @@
 #!/usr/bin/env ruby
 
+BACKUP_DIR = File.expand_path("./backups")
+
 def backup_path(path)
   candidate = File.expand_path(path)
   index = 1
@@ -12,16 +14,17 @@ end
 
 def backup_previous_version_of(link)
   if File.exist?(link)
-    %x[mkdir -p ./backups/] unless File.directory?('./backups/')
-    backup = backup_path('./backups/' + File.basename(link))
+    %x[mkdir -p #{BACKUP_DIR}] unless File.directory?(BACKUP_DIR)
+    backup = backup_path(BACKUP_DIR + '/' + File.basename(link))
     %x[mv #{link} #{backup}]
   end
 end
 
-Dir.glob("./.*").each do |f|
+Dir.glob("./.*").push(Dir.glob("./*")).flatten.each do |f|
   filename = File.basename(f)
   next if filename =~ /^\.\.?$/
   next if filename == File.basename(__FILE__)
+  next if filename == File.basename(BACKUP_DIR)
   link_target = File.expand_path(f)
   link = File.expand_path("~/#{filename}")
   backup_previous_version_of(link)

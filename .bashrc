@@ -26,6 +26,8 @@ else
   [[ -e ~/.linux ]] && source ~/.linux
 fi
 
+[[ -e "$HOME/bin" ]] && export PATH="$PATH:$HOME/bin"
+
 # Initialize JAVA_HOME
 export JAVA_HOME="$(/usr/libexec/java_home)"
 
