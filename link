@@ -1,0 +1,29 @@
+#!/usr/bin/env ruby
+
+def backup_path(path)
+  candidate = File.expand_path(path)
+  index = 1
+  while File.exist?(candidate)
+    candidate = "#{path}.#{index}"
+    index += 1
+  end
+  candidate
+end
+
+def backup_previous_version_of(link)
+  if File.exist?(link)
+    %x[mkdir -p ./backups/] unless File.directory?('./backups/')
+    backup = backup_path('./backups/' + File.basename(link))
+    %x[mv #{link} #{backup}]
+  end
+end
+
+Dir.glob("./.*").each do |f|
+  filename = File.basename(f)
+  next if filename =~ /^\.\.?$/
+  next if filename == File.basename(__FILE__)
+  link_target = File.expand_path(f)
+  link = File.expand_path("~/#{filename}")
+  backup_previous_version_of(link)
+  %x[ln -s #{link_target} #{link}]
+end
