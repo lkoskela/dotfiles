@@ -25,6 +25,7 @@ end
 Dir.glob("./.*").push(Dir.glob("./*")).flatten.each do |f|
   filename = File.basename(f)
   next if filename =~ /^\.\.?$/
+  next if filename == ".git"
   next if filename == File.basename(__FILE__)
   next if filename == File.basename(BACKUP_DIR)
   link_target = File.expand_path(f)
