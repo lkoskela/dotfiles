@@ -1,0 +1,24 @@
+#!/usr/bin/env ruby
+
+$listened_interfaces = {}
+
+netstat = open("|netstat -na")
+begin
+  netstat.readlines.each do |line|
+    if line =~ /(tcp4)\s+(\d+)\s+(\d+)\s(.*?)\.(\d+)\s(.*)LISTEN/
+      interface = $4
+      port_number = $5.to_i
+      list = $listened_interfaces[interface] ||= []
+      list << port_number
+      $listened_interfaces[interface] = list.uniq.sort
+    end
+  end
+ensure
+  netstat.close
+end
+
+$listened_interfaces.each_key do |interface|
+  ports = $listened_interfaces[interface]
+  interface = "(all IPs)" if interface.strip == "*"
+  puts "#{interface.rjust(15)}  =>  #{ports.join(', ')}"
+end

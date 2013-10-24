@@ -1,0 +1,19 @@
+#!/bin/bash
+
+OPTIONS=""
+
+for arg in $@
+do
+  if [ -f "$arg" ]; then
+    break
+  fi
+  OPTIONS="$OPTIONS $arg"
+  shift
+done
+
+for f in $@ 
+do
+  CMD="convert $OPTIONS $f $f.jpg"
+  echo $CMD
+  `$CMD`
+done

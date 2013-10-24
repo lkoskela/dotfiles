@@ -1,0 +1,18 @@
+#!/bin/bash
+
+function list_modified_files {
+  svn status . | grep 'M ' | awk '{printf "%s\n", $2}'
+}
+
+echo "Reverting all changes in the following files:"
+FILES=$(list_modified_files)
+printf "%s\n" $FILES
+
+echo -n "OK? (y/N) : "
+read ANSWER
+
+case $ANSWER in
+  y*) svn revert $FILES ;;
+  *) echo "Operation aborted" ;;
+esac
+

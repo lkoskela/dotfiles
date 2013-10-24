@@ -1,0 +1,92 @@
+#!/usr/bin/env ruby
+
+require 'find'
+
+class SourceFile
+ attr_reader :source_dir, :package_name, :class_name
+ def initialize(source_dir, package_name, class_name)
+   @source_dir = source_dir
+   @package_name = package_name
+   @class_name = class_name
+ end
+ def self.load(file_path)
+   pkg = package_name_of(file_path)
+   cls = File.basename(file_path, ".java")
+   relative_path = "#{pkg.gsub('.','/')}/#{File.basename(file_path)}"
+   dir = file_path.split(relative_path).first
+   SourceFile.new(dir, pkg, cls)
+ end
+ def fully_qualified_class_name
+   "#{@package_name}.#{@class_name}"
+ end
+ private
+ def self.package_name_of(path)
+   source = open(path).read
+   package = ""
+   if source =~ /^\s*package\s+(.*)\s*;\s*$/
+     package = $1
+   end
+   package
+ end
+end
+
+def should_be_ignored?(file)
+ excludes = [ /(.*\/)?\.svn/ ]
+ excludes.each do |regex|
+   return true if file =~ regex
+ end
+ includes = [ /.*\.java/ ]
+ includes.each do |regex|
+   return false if file =~ regex
+ end
+ true
+end
+
+def source_files_in(root_dir)
+ source_files = []
+ Find.find(root_dir) do |file|
+   next if should_be_ignored? file
+   source_files << file
+ end
+ source_files
+end
+
+def classes_in(root_dir)
+ klasses = source_files_in(root_dir).map do |file|
+   SourceFile.load(file)
+ end
+end
+
+def names_of(classes=[])
+ classes.map { |klass| klass.fully_qualified_class_name }.sort
+end
+
+def find_conflicts_in(dir_a, dir_b)
+ a = names_of(classes_in(dir_a))
+ b = names_of(classes_in(dir_b))
+ union = (a + b).reject { |x| a.include?(x) == false or b.include?(x) == false }
+ if union.empty?
+   puts "# No classes found from both #{dir_a} and #{dir_b}" if union.empty?
+ else
+   puts "# #{union.size} classes found from both #{dir_a} and #{dir_b}"
+   union.each do |fqn|
+     puts fqn
+   end
+ end
+end
+
+def list_classes_in(dirs)
+ dirs.each do |dir|
+   names_of(classes_in(dir)).each do |fqn|
+     puts "#{fqn}"
+   end
+ end
+end
+
+dirs = ARGV
+dirs = ['.'] if ARGV.empty?
+if dirs.size == 2
+ find_conflicts_in(dirs.first, dirs.last)
+else
+ list_classes_in(dirs)
+end

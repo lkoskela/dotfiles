@@ -1,0 +1,97 @@
+#!/usr/bin/env ruby
+
+require 'appscript'
+
+def expand_argument(input_file)
+  args = []
+  %w{eps png}.each do |suffix|
+    base = File.basename(input_file, ".graffle")
+    args << [ input_file, File.join(File.dirname(input_file), "#{base}.#{suffix}") ]
+  end
+  args.flatten
+end
+
+class Omnigraffle
+  def self.is_running?
+    Appscript.app('System Events').processes.get.count { |p| p.name.get =~ /OmniGraffle/ } > 0
+  end
+  def initialize
+    raise "Please quit OmniGraffle before continuing with this operation." if Omnigraffle.is_running?
+    #			tell application "OmniGraffle Professional 5"
+    @app = Appscript.app('OmniGraffle Professional 5')
+  end
+  def convert(input, *output)
+    #				activate
+    @app.activate
+    #				open file infile
+    @app.open(input)
+    #				save front window in outfile
+    doc = @app.documents.get.first
+    output.each do |file|
+      @app.save(doc, :in => file)
+    end
+    #				close front window
+    @app.documents.get.first.close
+    #			end tell
+  end
+  def quit
+    @app.quit
+  end
+end
+
+def with_fresh_omnigraffle(&block)
+  omnigraffle = Omnigraffle.new
+  begin
+    yield omnigraffle if block_given?
+  ensure
+    omnigraffle.quit
+  end
+end
+
+def output_files_for(input_file)
+  args = []
+  %w{eps png}.each do |suffix|
+    base = File.basename(input_file, ".graffle")
+    args << File.join(File.dirname(input_file), "#{base}.#{suffix}")
+  end
+  args
+end
+
+with_fresh_omnigraffle do |omnigraffle|
+  ARGV.each do |input_file|
+    omnigraffle.convert(input_file, output_files_for(input_file))
+  end
+end
+
+#arguments = ARGV.collect { |arg| expand_argument(File.expand_path(arg)) }.flatten
+#with_fresh_omnigraffle do |omnigraffle|
+#  0.upto(arguments.length - 1) do |i|
+#    next if i % 2 != 0
+#    omnigraffle.convert(arguments[i], arguments[i + 1])
+#  end
+#end
+
+# ******* THE APPLESCRIPT WE'RE REPLACING *******
+# 
+#on run argv
+#	set i to 0
+#	repeat with arg in argv
+#		if i is equal to 0 then
+#			set i to i + 1
+#			set infile to (POSIX file arg) as string
+#		else
+#			set outfile to (POSIX file arg) as string
+#			tell application "OmniGraffle Professional 5"
+#				activate
+#				open file infile
+#				save front window in outfile
+#				--delay 0.30
+#				close front window
+#			end tell
+#			set i to i - 1
+#		end if
+#	end repeat
+#	
+#	delay 1.0
+#	tell application "OmniGraffle Professional 5" to quit application saving ask
+#end run

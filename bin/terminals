@@ -1,0 +1,101 @@
+#!/usr/bin/ruby
+
+require 'rubygems'
+require 'osx/cocoa' # for native screen size information through the Cocoa API
+require 'appscript' # for scripting Terminal.app
+include Appscript
+
+def screen
+  number_of_displays = 2
+  display_ids = [-1, -1]
+  display_count = OSX::ObjcPtr.new(:int) # [0, 0]
+  result = []
+  status, result, count =  OSX.CGGetOnlineDisplayList(number_of_displays) #, display_ids, display_count)
+  puts "result: #{result.join(',')}"
+
+  # CGDisplayErr CGGetOnlineDisplayList (
+  #  CGDisplayCount maxDisplays,
+  #  CGDirectDisplayID *onlineDspys,
+  #  CGDisplayCount *dspyCnt
+  # );
+  # 
+  # CGSize CGDisplayScreenSize (
+  #  CGDirectDisplayID display
+  # );
+  # 
+  # struct CGSize {
+  #  CGFloat width;
+  #  CGFloat height;
+  # };
+
+  displayId = OSX.CGMainDisplayID
+  width = OSX.CGDisplayPixelsWide(displayId)
+  height = OSX.CGDisplayPixelsHigh(displayId)
+  { :width => width, :height => height }
+end
+
+def new_window_in(terminal)
+  window = nil
+  if terminal.is_running?
+    tab = terminal.do_script("")
+    tab.selected.set(true)
+    window = terminal.windows[its.selected_tab.eq(tab)]
+  else
+    # property access implicitly launches a new window -> get and return that
+    window = terminal.windows.first.get
+    window.selected_tab.selected.set(true)
+  end
+  window
+end
+
+# Opens a new terminal window and does some magic in it.
+#
+# Supported configuration parameters include:
+#   :name => a custom name for the terminal window
+#   :bounds => a list of position coordinates for the terminal window [x1, y1, x2, y2]
+#   :commands => a list of shell commands to execute in the terminal window
+#
+def open_terminal_window(config={})
+  terminal = app("Terminal.app")
+  window = new_window_in(terminal)
+  commands = []
+  if config.has_key? :name
+    window.custom_title.set(config[:name])
+  end
+  if config.has_key? :position
+    commands << "xtermcontrol --geometry=102x25+#{config[:position][:x]}+#{config[:position][:y]}"
+  end
+  if config.has_key? :commands
+    config[:commands].each do |command|
+      commands << command
+    end
+  end
+  commands << "clear"
+  commands.each do |command|
+    terminal.do_script(command, :in => selected_tab_of(window))
+  end
+end
+
+def selected_tab_of(window)
+  tab = window.selected_tab.get
+  tab = tab[0] if tab.class == Array   # sometimes tab is an Array, sometimes it's an Appscript Reference
+  tab
+end
+
+terminal_width = (screen[:width] / 2)
+terminal_height = ((screen[:height] - 24) / 2)
+
+exit 1
+
+open_terminal_window({ :name => "top-left",      :position => { :x => 0, :y => 0 },
+                       :width => terminal_width, :height => terminal_height, 
+                       :commands => [ "echo 'top-left'" ] })
+open_terminal_window({ :name => "top-right",     :position => { :x => terminal_width, :y => 0 },
+                       :width => terminal_width, :height => terminal_height, 
+                       :commands => [ "echo 'top-right'" ] })
+open_terminal_window({ :name => "bottom-left",      :position => { :x => 0, :y => terminal_height },
+                       :width => terminal_width, :height => terminal_height, 
+                       :commands => [ "echo 'bottom-left'" ] })
+open_terminal_window({ :name => "bottom-right",     :position => { :x => terminal_width, :y => terminal_height },
+                       :width => terminal_width, :height => terminal_height, 
+                       :commands => [ "echo 'bottom-right'" ] })

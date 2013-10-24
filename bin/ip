@@ -1,0 +1,61 @@
+#!/usr/bin/env ruby
+
+class Interface
+  @@all = []
+  attr_accessor :name, :ip, :ip6, :mac, :status
+
+  def Interface.all
+    @@all.reject { |x| x.mac.nil? || x.mac =~ /^\s*$/ }
+  end
+
+  def initialize(name = nil)
+    @name = name
+    @@all << self
+  end
+
+  def to_s
+    s = "#{@name}:"
+    s << "\t#{pad(@ip.to_s, 15)}"
+    s << "\t#{pad(@status.to_s, 8)}"
+    s << "\tMAC=#{pad(@mac, 17)}"
+    s << "\tIPv6=#{@ip6}" unless nil_or_empty?(@ip6)
+    s
+  end
+
+  private
+  def nil_or_empty?(string)
+    string.nil? or string =~ /^\s*$/
+  end
+
+  def pad(string, length)
+    while string.length <= length do
+      string << " "
+    end
+    string
+  end
+end
+
+ifconfig = open("|ifconfig")
+begin
+  interface = nil
+  ifconfig.readlines.each do |line|
+    if line =~ /^(\w+):/
+      interface = Interface.new($1)
+    elsif line =~ /inet (\d+\.\d+\.\d+\.\d+)\s/
+      interface.ip = $1
+    elsif line =~ /inet6 (.*?)%/
+      interface.ip6 = $1
+    elsif line =~ /ether (.*?)\s/
+      interface.mac = $1
+    elsif line =~ /status: (.*?)\s/
+      interface.status = $1 
+    end
+  end
+ensure
+  ifconfig.close
+end
+
+Interface.all.each do |interface|
+  puts "#{interface}" if ARGV.length == 0 or ARGV.index(interface.name)
+end
+

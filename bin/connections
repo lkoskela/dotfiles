@@ -1,0 +1,39 @@
+#!/usr/bin/env ruby
+
+FILE="/tmp/scripts.connections.output"
+
+#Proto Recv-Q Send-Q  Local Address          Foreign Address        (state)
+#tcp4       0      0  192.168.9.65.51191     65.214.39.152.80       ESTABLISHED
+system("netstat -na|grep ESTABLISHED > #{FILE}")
+
+def domain_name_for(ip)
+  system("nslookup #{ip} > #{FILE}")
+  File.open(FILE).each do |line|
+  # 29.0/27.190.65.193.in-addr.arpa name = backport.ri.fi.
+    if line.strip =~ /^.*?in-addr\.arpa\s+name\s+=\s+(.*?)\.$/
+      return $1
+    end
+  end
+  return ip
+end
+
+def to_addr(dot_string)
+  if dot_string =~ /^(.*)\.(.*?)$/
+    return "#{$1}:#{$2}"
+  end
+  dot_string
+end
+
+foreign_addresses = {}
+File.open(FILE).each do |line|
+  if line.strip =~ /^(\w+)\s+(\d+)\s+(\d+)\s+(.+?)\s+(.+?)\s+.*$/
+    foreign_addresses[to_addr($4)] = to_addr($5)
+  end
+end
+foreign_addresses = foreign_addresses.values.uniq!.sort!
+puts "Connected to #{foreign_addresses.size} foreign addresses:"
+foreign_addresses.each do |addr|
+  puts "#{addr} (#{domain_name_for(addr.split(':')[0])})"
+end
+
+File.delete(FILE)

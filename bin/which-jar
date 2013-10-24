@@ -1,0 +1,3 @@
+#!/bin/sh
+QUERY=$1
+find . -name '*.[jwes]ar' | while read LINE; do grep -q "$QUERY" "$LINE"; if [ $? -eq 0 ];then echo "$LINE"; jar tvf "$LINE" | grep "$QUERY";echo;fi;done

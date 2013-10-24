@@ -1,0 +1,126 @@
+#!/usr/bin/env ruby
+
+#################################################################################
+# TODO:
+# - command line options such as:
+#   --exclude [file or directory]  Excludes given resources from any comparisons
+#   --size=on|off                  Activates size comparison (off by default)
+#   --name=on|off                  Activates name comparison (on by default)
+#################################################################################
+
+DEBUG = false
+
+$files = []
+$images = []
+$videos = []
+$images_by_size = {}
+$videos_by_size = {}
+$images_by_name = {}
+$videos_by_name = {}
+
+def print_usage
+  puts "Usage: #{__FILE__} [file_or_directory [...]]"
+end
+
+def collect_files(file_or_dir)
+  if File.directory?(file_or_dir)
+    Dir.entries(file_or_dir).each do |child|
+      collect_files("#{file_or_dir}#{File::SEPARATOR}#{child}") unless child == "." or child == ".."
+    end
+  elsif File.exists?(file_or_dir)
+    $files << file_or_dir
+  else
+    puts "Warning: Ignoring #{file_or_dir} because it's not a file or directory" if DEBUG
+  end
+end
+
+def matches(pattern, filepath)
+  return true if filepath =~ pattern
+  return false
+end
+
+def looks_like_image(f)
+  matches(/[I_]MG_[0-9]+(_\d+)?\..+/, f)
+end
+
+def looks_like_video(f)
+  matches(/MVI_[0-9]+(_\d+)?\..+/, f)
+end
+
+def print_potential_duplicates_based_on_file_size(map)
+  non_duplicates = []
+  map.each_pair do |size, files|
+    if files.size > 1
+      puts "POTENTIAL DUPLICATES BASED ON FILE SIZE:"
+      files.each do |f|
+        puts "  #{f}"
+      end
+    else
+      non_duplicates << size
+    end
+  end
+  non_duplicates.each {|size| map.delete(size) }
+end
+
+def print_potential_duplicates_based_on_file_name(map)
+  non_duplicates = []
+  map.each_pair do |name, files|
+    if files.size > 1
+      puts "POTENTIAL DUPLICATES BASED ON FILE NAME:"
+      files.each do |f|
+        puts "  #{f}"
+      end
+    else
+      non_duplicates << name
+    end
+  end
+  non_duplicates.each {|name| map.delete(name) }
+end
+
+def print_number_of_potential_duplicate_series(*maps)
+  total = 0
+  maps.each do |map|
+    total += map.keys.size
+  end
+  puts "A TOTAL OF #{total} SERIES OF POTENTIAL DUPLICATES"
+end
+
+if ARGV.empty?
+  print_usage
+  exit 1
+end
+
+ARGV.each do |arg|
+  collect_files(arg)
+end
+
+$files.each do |f|
+  $images << f if looks_like_image(f)
+  $videos << f if looks_like_video(f)
+end
+
+$images.each do |f|
+  size = File.size(f)
+  match = Regexp.compile("[I_]MG_([0-9]+)(_\d+)?\..+").match(File.basename(f))
+  if match
+    name = match.captures[0]
+    $images_by_name[name] = [] unless $images_by_name.has_key?(name)
+    $images_by_name[name] << f
+  else
+    puts "Regex didn't match on #{File.basename(f)}"
+  end
+  $images_by_size[size] = [] unless $images_by_size.has_key?(size)
+  $images_by_size[size] << f
+end
+
+$videos.each do |f|
+  size = File.size(f)
+  $videos_by_size[size] = [] unless $videos_by_size.has_key?(size)
+  $videos_by_size[size] << f
+end
+
+print_potential_duplicates_based_on_file_size($images_by_size)
+print_potential_duplicates_based_on_file_size($videos_by_size)
+print_potential_duplicates_based_on_file_name($images_by_name)
+print_potential_duplicates_based_on_file_name($videos_by_name)
+print_number_of_potential_duplicate_series($images_by_size, $images_by_name, $videos_by_size, $videos_by_name)
