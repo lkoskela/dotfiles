@@ -11,7 +11,20 @@ export INPUTRC=~/.inputrc
 export EDITOR="vi"
 if [[ -e "$(which mate)" ]]; then
   export GIT_EDITOR="mate -w"
-  export SVN_EDITOR="mate -w"
+fi
+
+# Use Sublime Text if we can find an installation
+if [[ -e "/Applications/Sublime Text.app/Contents/SharedSupport/bin/subl" ]]; then
+  export PATH="$PATH:/Applications/Sublime Text.app/Contents/SharedSupport/bin"
+  export GIT_EDITOR="subl -w"
+elif [[ -e "/Applications/Sublime Text 2.app/Contents/SharedSupport/bin/subl" ]]; then
+  export PATH="$PATH:/Applications/Sublime Text 2.app/Contents/SharedSupport/bin"
+  export GIT_EDITOR="subl -w"
+fi
+
+# Use the same editor for Git and Subversion
+if [ "$GIT_EDITOR" != "" ]; then
+  export SVN_EDITOR="$GIT_EDITOR"
 fi
 
 # Initialize language and locale variables
