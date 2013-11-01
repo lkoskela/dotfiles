@@ -18,7 +18,7 @@ def backup_previous_version_of(link)
   %x[mkdir -p #{BACKUP_DIR}] unless File.directory?(BACKUP_DIR)
   backup = backup_path(BACKUP_DIR + '/' + File.basename(link))
   %x[cp -R -H #{link} #{backup}]
-  %x[rm #{link}]
+  %x[rm -r #{link}]
   $backups_taken += 1 
 end
 
