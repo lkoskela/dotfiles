@@ -1,0 +1,8 @@
+#!/usr/bin/env ruby
+
+ARGV.each do |f|
+  next unless File.file?(f)
+  if %x[identify "#{f}"] =~ / (PNG|JPG) (\d+x\d+)/
+    puts "#{f}: #{$2}"
+  end
+end
