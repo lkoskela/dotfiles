@@ -80,3 +80,5 @@ export GREP_OPTIONS='--color=auto'
 ### NodeJS stuff
 [[ -e /usr/local/share/npm/bin ]] && export PATH="$PATH:/usr/local/share/npm/bin"
 
+### Homebrew configuration
+[[ -e ~/.brewrc ]] && source ~/.brewrc
