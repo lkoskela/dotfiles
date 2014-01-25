@@ -25,7 +25,7 @@ WHITE=$'\[\033[1;37m\]'
 ############################
 #BASEPROMPT="${RED}\u${LIGHT_GRAY}@${GREEN}\h ${BROWN}\$(short_pwd)"
 #BASEPROMPT="${RED}\u${LIGHT_GRAY} ${BROWN}\$(short_pwd)"
-BASEPROMPT="${RED}\u${LIGHT_GRAY} ${BROWN}\W"
+BASEPROMPT="${LIGHT_GREEN}\u${LIGHT_GRAY} ${YELLOW}\W"
 
 ####################
 # Git-aware prompt #
@@ -87,8 +87,10 @@ short_pwd() {
   fi
 }
 
-VCS_BRANCH="${PURPLE}\$(__subversion_branch)\$(__git_branch)\$(__mercurial_branch)${D}"
-
+VCS_BRANCH="${GREEN}\$(__subversion_branch)\$(__git_branch)\$(__mercurial_branch)${D}"
+if [ "$VCS_BRANCH" != "" ]; then
+  VCS_BRANCH=" $VCS_BRANCH"
+fi
 
 ##############################
 # Export the prompt variable #
