@@ -17,7 +17,7 @@
 	co = checkout
 	cp = cherry-pick
 	lg = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --date=relative
-	cl = log --pretty=oneline --abbrev-commit
+	tm = log --abbrev-commit --pretty=format:'%Cred%h %Cgreen(%cd)%Creset %s %C(bold blue)<%an>%Creset' --date=iso
 [rerere]
 	enabled = true
 [format]
