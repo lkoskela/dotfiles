@@ -1,0 +1,17 @@
+[ui]
+username = Lasse Koskela <lasse.koskela@reaktor.fi>
+
+[alias]
+slog = log --template '{rev}:{node|short}  {desc|firstline}  ({author|person})\n'
+
+[extensions]
+graphlog=
+pager=
+color=
+fetch=
+record=
+bookmarks=
+
+[pager]
+pager = LESS='FSRX' less
+ignore = version, help, update, serve, record
