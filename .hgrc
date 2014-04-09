@@ -3,6 +3,8 @@ username = Lasse Koskela <lasse.koskela@reaktor.fi>
 
 [alias]
 slog = log --template '{rev}:{node|short}  {desc|firstline}  ({author|person})\n'
+config = show
+show = log -pr
 
 [extensions]
 graphlog=
@@ -14,4 +16,4 @@ bookmarks=
 
 [pager]
 pager = LESS='FSRX' less
-ignore = version, help, update, serve, record
+attend = annotate, cat, diff, export, glog, log, qdiff, show
