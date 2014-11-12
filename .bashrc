@@ -44,6 +44,16 @@ fi
 # Initialize JAVA_HOME
 export JAVA_HOME="$(/usr/libexec/java_home)"
 
+# Define a Bash function for switching JAVA_HOME
+function use_java {
+  NEW_JAVA_HOME=$(/usr/libexec/java_home --failfast -v "$1")
+  if [ "$?" = "0" ]; then
+    echo "Using JVM in $NEW_JAVA_HOME"
+    export JAVA_HOME=$NEW_JAVA_HOME
+    export PATH=$JAVA_HOME/bin:$PATH
+  fi
+}
+
 # Initialize Android SDK stuff
 export ANDROID_SDK_ROOT="/usr/local/opt/android-sdk"
 export ANDROID_HOME="/usr/local/opt/android-sdk"
