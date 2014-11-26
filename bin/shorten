@@ -1,0 +1,15 @@
+#!/usr/bin/python
+
+import requests
+import json
+import sys
+
+# Build the request.
+shortener = "https://www.googleapis.com/urlshortener/v1/url"
+longURL = sys.argv[1]
+headers = {'content-type': 'application/json'}
+payload = {'longUrl': longURL}
+
+# Get the shortened URL and print it.
+r = requests.post(shortener, headers=headers, data=json.dumps(payload))
+sys.stdout.write(r.json()['id'])
