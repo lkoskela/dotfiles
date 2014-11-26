@@ -1,0 +1,11 @@
+#!/bin/bash
+if [[ "$1" == "" ]]; then
+  echo "Usage: $0 source.json [output.json]"
+  exit 1
+fi
+
+if [[ "$2" == "" ]]; then
+  cat "$1" | python -mjson.tool
+else
+  cat "$1" | python -mjson.tool > $2
+fi
