@@ -1,0 +1,31 @@
+#!/usr/bin/env ruby
+
+require 'tempfile'
+
+def format(file, tmpfile)
+  if file.end_with?(".json.gz")
+    copyfile = File.join(File.dirname(file), '__' + File.basename(file))
+    %x[cp -f #{file} #{copyfile} && gunzip -f #{copyfile}]
+    file = copyfile[0..-4]
+  end
+  if file.end_with?(".json")
+    %x[python -mjson.tool #{file} > #{tmpfile.path}]
+    %x[mv #{tmpfile.path} #{file}]
+  elsif file.end_with?(".xml")
+    %x[xmllint --format --output #{tmpfile.path} #{file}]
+    %x[mv #{tmpfile.path} #{file}]
+  else
+    puts "I don't know how to format #{file}"
+    exit 1
+  end
+  puts open(file).read
+end
+
+file = ARGV.first
+tmpfile = Tempfile.new('foo')
+begin
+  format(file, tmpfile)
+ensure
+   tmpfile.close
+   tmpfile.unlink   # deletes the temp file
+end
