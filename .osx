@@ -22,5 +22,8 @@ defaults write com.apple.screencapture type jpg
 # Avoid creating .DS_Store files on network volumes
 defaults write com.apple.desktopservices DSDontWriteNetworkStores -bool true
 
+# When taking a screencapture, don't include the window shadow
+defaults write com.apple.screencapture disable-shadow -bool true
+
 # OSX-only aliases
 alias safari="open -a safari"
