@@ -54,6 +54,12 @@ function use_java {
   fi
 }
 
+# Set up Go
+if [[ -e "$(which go)" ]]; then
+  export GOPATH=$HOME/go
+  export PATH=$PATH:$GOPATH/bin
+fi
+
 # Initialize Android SDK stuff
 export ANDROID_SDK_ROOT="/usr/local/opt/android-sdk"
 export ANDROID_HOME="/usr/local/opt/android-sdk"
