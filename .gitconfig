@@ -16,7 +16,7 @@
 	ci = commit -v
 	co = checkout
 	cp = cherry-pick
-	lg = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --date=relative
+  lg = log --graph --pretty=format:'%C(190)%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(226)<%an>%Creset' --abbrev-commit --date=relative
 	tm = log --abbrev-commit --pretty=format:'%Cred%h %Cgreen(%cd)%Creset %s %C(bold blue)<%an>%Creset' --date=iso
 [rerere]
 	enabled = true
