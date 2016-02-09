@@ -50,6 +50,7 @@ def parse_provisioning_profile(file_path)
   tmpfile = Tempfile.new(File.basename(file_path))
   %x[security cms -D -i "#{file_path}" > #{tmpfile.path}]
   team_identifier = %x[/usr/libexec/PlistBuddy -c "Print :TeamIdentifier:0" "#{tmpfile.path}"].strip
+  profile_name = %x[/usr/libexec/PlistBuddy -c "Print :Name" "#{tmpfile.path}"].strip
   team_name = %x[/usr/libexec/PlistBuddy -c "Print :TeamName" "#{tmpfile.path}"].strip
   app_identifier = %x[/usr/libexec/PlistBuddy -c "Print :Entitlements:application-identifier" "#{tmpfile.path}"].strip
   if app_identifier.start_with?("#{team_identifier}.")
@@ -57,6 +58,7 @@ def parse_provisioning_profile(file_path)
   end
   expiry_date = DateTime.parse(%x[/usr/libexec/PlistBuddy -c "Print :ExpirationDate" "#{tmpfile.path}"])
   return {
+    :name => profile_name,
   	:team_name => team_name,
   	:team_id => team_identifier,
   	:app_id => app_identifier,
@@ -96,7 +98,10 @@ def list_profiles
 		end
 		puts "Total of #{matching_provisioning_profiles.size} provisioning profiles matching app identifier '#{OPTIONS[:app_filter]}'" if OPTIONS[:verbose]
 	end
-	matching_provisioning_profiles.each_with_index do |p,i|
+  sorted_matching_provisioning_profiles = matching_provisioning_profiles.sort_by { |p|
+    "#{p[:team_name]}.#{p[:app_id]}.#{p[:expires].strftime('%Y-%m-%d')}"
+  }
+	sorted_matching_provisioning_profiles.each_with_index do |p,i|
 		parts = []
 		parts << File.basename(p[:file])
 		expiry_date = p[:expires].strftime('%Y-%m-%d')
@@ -104,6 +109,7 @@ def list_profiles
 		parts << expiry_date
 		parts << "#{p[:team_id]}.#{p[:app_id]}"
 		if OPTIONS[:verbose]
+      parts << "\"#{p[:name]}\""
 			parts << "\"#{p[:team_name]}\""
 		end
   		puts parts.join(' ')
