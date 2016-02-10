@@ -1,8 +1,8 @@
 #!/usr/bin/env ruby
-#/ Usage: provisioning-profiles [options]...
+#/ Usage: provisioning-profiles [command] [options]...
 #/
-#/     General options:
-#/     -v              speak out what's happening
+#/ General options:
+#/     -v              Speak out what's happening
 #/ 
 #/ provisioning-profiles purge        Purge expired profiles
 #/     Options:
@@ -11,8 +11,8 @@
 #/
 #/ provisioning-profiles list         List provisioning profiles
 #/     Options:
-#/     -a <filter>     filter profiles by application identifier
-#/     -t <filter>     filter profiles by team name or identifier
+#/     -a <filter>     Filter profiles by application identifier
+#/     -t <filter>     Filter profiles by team name or identifier
 #/
 
 $stderr.sync = true
@@ -85,21 +85,18 @@ end
 
 def list_profiles
 	matching_provisioning_profiles = provisioning_profiles
-	puts "Total of #{matching_provisioning_profiles.size} provisioning profiles in #{profile_dir}" if OPTIONS[:verbose]
 	unless OPTIONS[:team_filter].nil?
 		matching_provisioning_profiles = matching_provisioning_profiles.select do |p|
 			p[:team_name].downcase.include?(OPTIONS[:team_filter].downcase) or p[:team_id].downcase.include?(OPTIONS[:team_filter].downcase)
 		end
-		puts "Total of #{matching_provisioning_profiles.size} provisioning profiles matching team name '#{OPTIONS[:team_filter]}'" if OPTIONS[:verbose]
 	end
 	unless OPTIONS[:app_filter].nil?
 		matching_provisioning_profiles = matching_provisioning_profiles.select do |p|
 			p[:app_id].downcase.include?(OPTIONS[:app_filter].downcase)
 		end
-		puts "Total of #{matching_provisioning_profiles.size} provisioning profiles matching app identifier '#{OPTIONS[:app_filter]}'" if OPTIONS[:verbose]
 	end
   sorted_matching_provisioning_profiles = matching_provisioning_profiles.sort_by { |p|
-    "#{p[:team_name]}.#{p[:app_id]}.#{p[:expires].strftime('%Y-%m-%d')}"
+    "#{p[:team_name]}.#{p[:app_id]}.#{p[:expires].strftime('%Y-%m-%d')}.#{p[:name]}"
   }
 	sorted_matching_provisioning_profiles.each_with_index do |p,i|
 		parts = []
