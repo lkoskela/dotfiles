@@ -1,0 +1,11 @@
+#!/bin/bash
+DERIVED_DATA="$HOME/Library/Developer/Xcode/DerivedData"
+
+echo -n "Delete everything under $DERIVED_DATA (y/n)? "
+read answer
+if echo "$answer" | grep -iq "^y" ; then
+  find "$DERIVED_DATA" -type d -depth 1 | grep -v "$DERIVED_DATA/ModuleCache" | xargs rm -rf
+else
+  echo "Aborted"
+  exit 1
+fi
