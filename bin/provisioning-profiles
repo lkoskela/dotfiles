@@ -56,30 +56,56 @@ def parse_provisioning_profile(file_path)
   if app_identifier.start_with?("#{team_identifier}.")
   	app_identifier = app_identifier["#{team_identifier}.".size..-1]
   end
-  expiry_date = DateTime.parse(%x[/usr/libexec/PlistBuddy -c "Print :ExpirationDate" "#{tmpfile.path}"])
+  creation_date = DateTime.parse(%x[/usr/libexec/PlistBuddy -c "Print :CreationDate" "#{tmpfile.path}"].strip)
+  expiry_date = DateTime.parse(%x[/usr/libexec/PlistBuddy -c "Print :ExpirationDate" "#{tmpfile.path}"].strip)
   return {
     :name => profile_name,
   	:team_name => team_name,
   	:team_id => team_identifier,
   	:app_id => app_identifier,
   	:file => File.absolute_path(file_path),
+  	:created => creation_date,
   	:expires => expiry_date,
   	:expired => expiry_date < DateTime.now
   }
 end
 
-def purge_expired_profiles
+def read_profiles
 	all_provisioning_profiles = provisioning_profiles
 	puts "Total of #{all_provisioning_profiles.size} provisioning profiles in #{profile_dir}" if OPTIONS[:verbose]
-	expired_provisioning_profiles = all_provisioning_profiles.select { |p| p[:expires] < DateTime.now }
+	return all_provisioning_profiles
+end
+
+def delete_profile(p)
+	return false if p.nil? or not File.exist?(p[:file])
+	if OPTIONS[:verbose] or OPTIONS[:dry_run]
+  		puts "Deleting \"#{p[:file]}\"\t(#{p[:team_id]}.#{p[:app_id]}, expired on #{p[:expires].strftime("%Y-%m-%d")})"
+  	end
+  	unless OPTIONS[:dry_run]
+  		%x[rm "#{p[:file]}"]
+  	end
+  	true
+end
+
+def purge_expired_profiles(profiles = nil)
+	profiles = read_profiles if profiles.nil?
+	expired_provisioning_profiles = profiles.select { |p| p[:expires] < DateTime.now }
 	puts "#{expired_provisioning_profiles.size} expired provisioning profiles" if OPTIONS[:verbose]
 	expired_provisioning_profiles.each_with_index do |p,i|
-		if OPTIONS[:verbose] or OPTIONS[:dry_run]
-	  		puts "Deleting \"#{p[:file]}\"\t(#{p[:team_id]}.#{p[:app_id]}, expired on #{p[:expires].strftime("%Y-%m-%d")})"
-	  	end
-	  	unless OPTIONS[:dry_run]
-	  		%x[rm "#{p[:file]}"]
-	  	end
+		delete_profile(p)
+	end
+end
+
+def purge_older_profiles(profiles = nil)
+	profiles = read_profiles if profiles.nil?
+	purge_expired_profiles(profiles)
+	profiles_by_app_id = profiles.group_by { |p| p[:app_id] }
+	profiles_by_app_id.keys.each do |key|
+		list = profiles_by_app_id[key].sort_by { |p| p[:creation_date] }
+		while list.size > 1
+			p = list.shift
+			delete_profile(p)
+		end
 	end
 end
 
@@ -116,6 +142,8 @@ end
 command = ARGV.first || "list"
 if command == "purge"
 	purge_expired_profiles
+elsif command == "purge-old"
+	purge_older_profiles
 elsif command == "list"
 	list_profiles
 else
