@@ -96,5 +96,12 @@ export GREP_OPTIONS='--color=auto'
 ### NodeJS stuff
 [[ -e /usr/local/share/npm/bin ]] && export PATH="$PATH:/usr/local/share/npm/bin"
 
+### Apache Flex
+[[ -e "/Applications/ApacheFlexSDK" ]] && export FLEX_HOME="/Applications/ApacheFlexSDK"
+[[ -e "$HOME/Projects/opensource/ApacheFlex/flex-sdk" ]] && export FLEX_HOME="$HOME/Projects/opensource/ApacheFlex/flex-sdk"
+[[ -e "$HOME/Downloads/AIRSDK_Compiler" ]] && export AIR_HOME="$HOME/Downloads/AIRSDK_Compiler"
+[[ -e "/Applications/Adobe Flash Builder 4.7/sdks/4.6.0" ]] && export ADOBE_FLEX_HOME="/Applications/Adobe Flash Builder 4.7/sdks/4.6.0"
+
 ### Homebrew configuration
 [[ -e ~/.brewrc ]] && source ~/.brewrc
+
