@@ -1,0 +1,10 @@
+#!/bin/bash
+
+for i in "$@"
+do
+  PATH="$i"
+  if [[ -e "$PATH" ]]; then
+    /usr/bin/du -hs "$PATH" | /usr/bin/grep -v 'K\t' | /usr/bin/grep -v 'B\t' | /usr/bin/grep -v '\.\dM\t' | /usr/bin/grep -v ' \d\dM\t'
+  fi
+done
+
