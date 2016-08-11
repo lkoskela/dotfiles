@@ -1,0 +1,41 @@
+#!/usr/bin/env ruby
+
+def resolve_workspace_dir(args = [])
+  return "." if args.empty?
+  args.first
+end
+
+def workspace_files(dir)
+  workspace_files = []
+  if dir.end_with?(".xcworkspace")
+    workspace_files = [dir]
+  else
+    workspace_files = %x[find "#{dir}" -name "*.xcworkspace" -depth 1].strip.split("\n")
+  end
+end
+
+def open_workspace(workspace_file)
+  puts "Opening Xcode workspace #{File.absolute_path(workspace_file)}"
+  %x[open "#{workspace_file}"]
+end
+
+def open_xcode()
+  app_path = "/Applications/Xcode.app"
+  if File.exist?(app_path)
+    %x[open "#{app_path}"]
+  else
+    puts "Xcode not found from #{app_path}"
+    exit 1
+  end
+end
+
+workspace_dir = resolve_workspace_dir(ARGV)
+alternatives = workspace_files(workspace_dir)
+if alternatives.size == 1
+  open_workspace(alternatives.first)
+elsif alternatives.size == 0
+  open_xcode()
+else
+  puts "Multiple .xcworkspace files found in #{workspace_dir} - please choose:"
+  exit 1
+end
