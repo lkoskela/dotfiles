@@ -1,0 +1,134 @@
+#!/usr/bin/env ruby
+require 'json'
+
+pods = []
+if ARGV.length > 0
+  pods = ARGV.map do |podname|
+    { :name => podname, :version => "" }
+  end
+end
+
+podspec = Dir.glob("*.podspec").first
+if pods.size == 0 and not podspec.nil?
+  deps = JSON.parse(%x[pod ipc spec "#{podspec}" | jq '{ shared: .dependencies, ios: .ios.dependencies, tvos: .tvos.dependencies }'])
+  all = []
+  ['shared', 'ios', 'tvos'].each do |platform|
+    deps[platform].keys.each do |key|
+      version = deps['shared'][key].first || "~> 0"
+      all << { :name => key, :version => version }
+    end unless deps[platform].nil?
+  end
+  pods = all.flatten
+end
+
+lockfile = Dir.glob("Podfile.lock").first
+if pods.size == 0 and not lockfile.nil?
+  deps = open(lockfile).read.gsub(/.*^PODS:\n\s*/m, '').gsub(/\n\n.*/m, "")
+  deps = deps.gsub(/\s+\-\s+/, "\n").split("\n")
+  deps = deps.map {|s| s.gsub(/^(-\s*)(.*)$/, "\\2") }
+  deps = deps.reject { |s| s == "" }
+  deps = deps.map do |podstring|
+    unless podstring =~ /\s+\(.+\):?/
+      podstring = "#{podstring} ()"
+    end
+    name = podstring.gsub(/(.*)\s\(.*\):?/, "\\1")
+    version = podstring.gsub(/(.*)\s\((.*)\):?/, "\\2")
+    pod = { :name => name, :version => version }
+    pod
+  end
+  pods = deps
+end
+
+pods = pods.map do |pod|
+  if pod[:name] =~ /.+\/.+/
+    mainspec = pod[:name].gsub(/\/.+$/, "")
+    subspec = pod[:name].gsub(/^.+\//, "")
+    pod[:name] = mainspec
+    pod[:subspec] = subspec
+  end
+  pod
+end
+
+grouped_pods = pods.group_by { |p| p[:name] }
+grouped_pods_result = []
+grouped_pods.each do |mainspec, specs|
+  grouped_pods_result << specs.sort_by { |spec| spec[:version].gsub(/[^0-9\.\-a-zA-Z_]+/, '') }.reverse.first
+end
+pods = grouped_pods_result
+
+if pods.size == 0
+  puts "Please pass pods' names as arguments or run #{File.basename(__FILE__)}\nin a directory that contains a *.podspec or Podfile.lock file."
+  exit 1
+end
+
+def standard_license?(license_type)
+  return true if license_type == "MIT"
+  return true if license_type == "Apache License, Version 2.0"
+  false
+end
+
+def pod_type(pod)
+  specfile = %x[pod spec which "#{pod}"].strip
+  return :ruby if specfile.end_with?(".podspec")
+  return :json if specfile.end_with?(".podspec.json")
+  return :unknown
+end
+
+def licenses_for_pod(pod)
+  podname = pod[:name]
+  specfile = %x[pod spec which "#{podname}"].strip
+  info = {}
+  if pod_type(podname) == :ruby
+    info = JSON.parse(%x[pod ipc spec "#{specfile}"].strip)
+  elsif pod_type(podname) == :json
+    info = JSON.parse(%x[pod spec cat "#{podname}" | jq -c '{name: .name, version: .version, license: .license}'])
+  else
+    puts "WARNING: Type of pod '#{podname}' is unknown (#{specfile})"
+  end
+  info['version'] = pod[:version] unless pod[:version].nil?
+  if info['license'].class == Hash
+    type = info['license']['type']
+    text = info['license']['text']
+    unless type.nil?
+      if standard_license?(type)
+        info['license'] = type
+      else
+        if text.nil?
+          info['license'] = type
+        elsif text =~ /^https?:\/\/[^ \t\n]+$/
+          info['license'] = "#{type} (#{text})"
+        else
+          info['license'] = type
+        end
+      end
+    end
+  end
+  info
+end
+
+license_info = []
+pods.each do |pod|
+  license_info << licenses_for_pod(pod)
+end
+
+def print_as_table(array_of_rows)
+  column_lengths = {}
+  array_of_rows.each do |row|
+    row.each_with_index do |value, index|
+      column_length = 0
+      column_length = column_lengths[index] unless column_lengths[index].nil?
+      column_lengths[index] = [column_length, value.length].max
+    end
+  end
+  array_of_rows.each do |row|
+    row_content = []
+    row.each_with_index do |value, index|
+      column_length = column_lengths[index]
+      format_string = "%-#{column_length}.#{column_length}s"
+      row_content << (format_string % value)
+    end
+    puts row_content.join("  ").rstrip
+  end  
+end
+
+print_as_table(license_info.map { |info| [info['name'], info['version'], info['license']] })
