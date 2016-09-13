@@ -1,0 +1,102 @@
+#!/usr/bin/env ruby
+require 'highline/import'
+require 'rexml/document'
+
+def confirm(question)
+  ask("#{question.strip} [y/N] ") { |yn|
+    yn.limit = 1
+    yn.validate = /[yn]/i
+  }.downcase == 'y'
+end
+
+# DEVICESUPPORT FOLDER
+
+device_support_folder = File.join(Dir.home, "Library/Developer/Xcode/iOS DeviceSupport")
+glob_path = File.join(device_support_folder, "*")
+ios_versions = Dir.glob(glob_path).map { |path| File.basename(path).split(" ").first }.sort.uniq
+ios_major_versions = ios_versions.map { |version| version.split("\.").first }.sort.uniq
+ios_major_versions.each do |major_version|
+  if confirm("Delete DeviceSupport folder for iOS #{major_version}?")
+    glob_path_for_version = File.join(device_support_folder, "#{major_version}.*")
+    Dir.glob(glob_path_for_version).each do |path|
+      %x[rm -rf "#{path}"]
+    end
+  end
+end
+
+
+# IOS SIMULATOR DEVICES PRIOR TO IOS 8
+
+old_simulator_devices_folder = File.join(Dir.home, 'Library/Application Support/iPhone Simulator')
+old_simulator_ios_versions = Dir.glob(File.join(old_simulator_devices_folder, '*.*')).map { |path| File.basename(path).split(/[^0-9\.]/).first }.sort.uniq
+old_simulator_ios_major_versions = old_simulator_ios_versions.map { |version| version.split("\.").first }.sort.uniq
+old_simulator_ios_major_versions.each do |major_version|
+  if confirm("Delete iPhone Simulator folder for iOS #{major_version}?")
+    glob_path_for_version = File.join(old_simulator_devices_folder, "#{major_version}.*")
+    Dir.glob(glob_path_for_version).each do |path|
+      %x[rm -rf "#{path}"]
+    end
+  end  
+end
+
+
+# IOS SIMULATOR DEVICES FROM IOS 8 ONWARDS
+
+coresimulator_devices_folder = File.join(Dir.home, 'Library/Developer/CoreSimulator/Devices')
+device_plist_location = File.join(coresimulator_devices_folder, '.default_created.plist')
+simulator_devices_xml = %x[/usr/libexec/PlistBuddy -x -c "Print" "#{device_plist_location}"]
+doc = REXML::Document.new(simulator_devices_xml)
+plist = doc.root
+current_key = nil
+os_type = nil
+os_major_version = nil
+devices_per_os = {}
+plist.each_element('dict/*') do |key_or_value|
+  if key_or_value.name == 'key'
+    current_key = key_or_value.text
+    if current_key =~ /\.((watchOS|tvOS|iOS)\-\d+\-\d+)$/
+      if current_key =~ /(watchOS|tvOS|iOS)\-(\d+)\-(\d+)/
+        os_type = $1
+        os_major_version = $2
+      else
+        current_key = nil
+      end
+    else
+      current_key = nil
+    end
+  elsif key_or_value.name == 'dict' and not current_key.nil? and not os_type.nil? and not os_major_version.nil?
+    current_device_key = nil
+    key_or_value.each_element('*') do |key_or_value|
+      if key_or_value.name == 'key'
+        current_device_key = key_or_value.text
+        unless current_device_key =~ /\.SimDeviceType\./
+          current_device_key = nil
+        end
+      elsif key_or_value.name == 'string' and not current_device_key.nil?
+        device_folder = File.join(coresimulator_devices_folder, key_or_value.text)
+        map_of_versions = devices_per_os[os_type] ||= {}
+        list_of_devices = map_of_versions[os_major_version] ||= []
+        list_of_devices << device_folder
+      end
+    end
+  end
+end
+
+modified_xml = simulator_devices_xml
+devices_per_os.keys.each do |os_type|
+  devices_per_os[os_type].keys.sort_by { |number| number.to_s.rjust(3, "0") }.each do |os_version|
+    devices = devices_per_os[os_type][os_version]
+    if confirm("Delete #{devices.size} simulator devices for #{os_type} #{os_version}?")
+      devices.each do |path|
+        %x[rm -rf "#{path}"]
+        uuid = File.basename(path)
+        modified_xml = modified_xml.gsub(/<key>.*?<\/key>\s*<string>\s*#{uuid}\s*<\/string>\s*\n?/, '')
+      end
+    end
+  end
+end
+if modified_xml.size != simulator_devices_xml.size
+  open(device_plist_location, 'w') do |file|
+    file.write(modified_xml)
+  end
+end
