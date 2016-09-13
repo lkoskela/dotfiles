@@ -1,0 +1,11 @@
+#!/bin/bash
+XCODE_CACHE="$HOME/Library/Caches/com.apple.dt.Xcode"
+
+echo -n "Delete everything under $XCODE_CACHE (y/n)? "
+read answer
+if echo "$answer" | grep -iq "^y" ; then
+  rm -rf "$XCODE_CACHE"
+else
+  echo "Aborted"
+  exit 1
+fi
