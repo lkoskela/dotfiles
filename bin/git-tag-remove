@@ -1,0 +1,52 @@
+#!/usr/bin/env ruby
+
+class ShellCommand
+  attr_reader :command, :output, :success
+  
+  def initialize(command)
+    @command = command
+  end
+
+  def run
+    @output = %x[#{@command} 2>&1]
+    @success = $?.success?
+    self
+  end
+
+  def to_s
+    @command
+  end
+end
+
+def abort(message = "")
+  puts message unless message.nil? or message.strip.empty?
+  exit 1
+end
+
+tag_name=ARGV.first
+
+abort("Usage: #{__FILE__} [tag name]") if tag_name.nil?
+
+check_status = ShellCommand.new("git status").run
+abort(check_status.output) unless check_status.success
+
+remote_name = ShellCommand.new("git remote").run
+abort("Can't resolve name of remote: #{remote_name.output}") unless remote_name.success
+
+tag_exists_locally = ShellCommand.new("git show #{tag_name}").run.success
+if tag_exists_locally
+  local_delete = ShellCommand.new("git tag -d '#{tag_name}'").run
+  abort("#{local_delete} failed:\n#{local_delete.output}") unless local_delete.success
+  puts "Deleted #{tag_name} locally with #{local_delete}"
+else
+  puts "Tag '#{tag_name}' not found locally."
+end
+
+tag_exists_remotely = ShellCommand.new("git fetch origin #{tag_name}").run.success
+if tag_exists_remotely
+  remote_delete = ShellCommand.new("git push #{remote_name.output.strip} ':refs/tags/#{tag_name}'").run
+  abort("#{remote_delete} failed:\n#{remote_delete.output}") unless remote_delete.success
+  puts "Deleted #{tag_name} from remote with #{remote_delete}"
+else
+  puts "Tag '#{tag_name}' not found in remote #{remote_name.output.strip}"
+end
