@@ -9,3 +9,7 @@
 [[ -s "$HOME/.bashrc" ]] && source "$HOME/.bashrc"
 [[ -s "$HOME/.profile" ]] && source "$HOME/.profile"
 [[ -s "$HOME/.rvm/scripts/rvm" ]] && source "$HOME/.rvm/scripts/rvm" # Load RVM into a shell session *as a function*
+if [[ -s "$HOME/.nvm" ]]; then
+  export NVM_DIR="$HOME/.nvm"
+  source "$(brew --prefix nvm)/nvm.sh"
+fi
