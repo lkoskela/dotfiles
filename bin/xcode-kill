@@ -1,0 +1,16 @@
+#!/usr/bin/env ruby
+
+xcode_app = %x[ps -ef|grep '.app/Contents/MacOS/Xcode$'| awk '{print $8}'].strip
+exit 0 unless File.exist?(xcode_app)
+
+xcode_pid = %x[ps -ef | grep '#{xcode_app}$' | awk '{print $2}'].strip
+exit 1 unless xcode_pid =~ /\d+/
+
+puts "Killing Xcode (#{xcode_pid})"
+%x[kill -9 #{xcode_pid}]
+
+simulator_service_pid = %x[ps -ef | grep '.xpc/Contents/MacOS/com.apple.CoreSimulator.CoreSimulatorService$' | awk '{print $2}'].strip
+if simulator_service_pid =~ /\d+/
+  puts "Killing Xcode CoreSimulatorService (#{simulator_service_pid})"
+  %x[kill -9 #{simulator_service_pid}]
+end
