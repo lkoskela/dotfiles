@@ -48,7 +48,7 @@ end
 
 def parse_provisioning_profile(file_path)
   tmpfile = Tempfile.new(File.basename(file_path))
-  %x[security cms -D -i "#{file_path}" > #{tmpfile.path}]
+  %x[security cms -D -i "#{file_path}" 1> #{tmpfile.path} 2> /dev/null]
   team_identifier = %x[/usr/libexec/PlistBuddy -c "Print :TeamIdentifier:0" "#{tmpfile.path}"].strip
   profile_name = %x[/usr/libexec/PlistBuddy -c "Print :Name" "#{tmpfile.path}"].strip
   team_name = %x[/usr/libexec/PlistBuddy -c "Print :TeamName" "#{tmpfile.path}"].strip
