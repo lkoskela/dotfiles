@@ -14,3 +14,11 @@ if simulator_service_pid =~ /\d+/
   puts "Killing Xcode CoreSimulatorService (#{simulator_service_pid})"
   %x[kill -9 #{simulator_service_pid}]
 end
+
+interface_builder_processes = %x[ps -ef | grep 'Interface Builder Cocoa Touch Tool' | grep -v grep | awk '{print $2}'].strip.split(/\s/)
+if interface_builder_processes.size > 0
+  puts "Killing #{interface_builder_processes.size} Interface Builder Cocoa Touch Tool processes"
+  interface_builder_processes.each do |interface_builder_pid|
+    %x[kill -9 #{interface_builder_pid}]
+  end
+end
