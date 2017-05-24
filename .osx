@@ -1,4 +1,6 @@
-# For inspiration, see http://mths.be/osx
+# For inspiration, see
+#  - http://mths.be/osx
+#  - https://github.com/keith/dotfiles/blob/master/osx/defaults.sh
 
 # Set a shorter Delay until key repeat (requires OS restart to take effect)
 defaults write NSGlobalDomain InitialKeyRepeat -int 12
@@ -24,6 +26,25 @@ defaults write com.apple.desktopservices DSDontWriteNetworkStores -bool true
 
 # When taking a screencapture, don't include the window shadow
 defaults write com.apple.screencapture disable-shadow -bool true
+
+# Show build times in toolbar
+# # http://cocoa.tumblr.com/post/131023038113/build-speed
+defaults write com.apple.dt.Xcode ShowBuildOperationDuration -bool true
+
+# # Add more information to Xcode's build output about why specific commands are being run
+# # https://twitter.com/bdash/status/661742266487205888
+# # http://www.openradar.me/27516128
+defaults write com.apple.dt.Xcode ExplainWhyBuildCommandsAreRun -bool true
+
+# # Stop Xcode from reopening files (specifically storyboards) on launch.
+# # I also have a `xcuser` shell command to wipe this state so you don't reopen
+# # storyboards and dirty the diff, or just take 30 seconds to launch
+defaults write com.apple.dt.Xcode IDEDisableStateRestoration -bool true
+
+# # Write detailed build system info into derived data
+# # If you don't enable this but `mkdir /tmp/xcode_dependency_logs` the logs will
+# # be created there instead
+defaults write com.apple.dt.Xcode EnableBuildSystemLogging -bool true
 
 # OSX-only aliases
 alias safari="open -a safari"
