@@ -105,3 +105,5 @@ export GREP_OPTIONS='--color=auto'
 ### Homebrew configuration
 [[ -e ~/.brewrc ]] && source ~/.brewrc
 
+# Fastlane configuration
+export SIGH_USERNAME="lasse.koskela@gmail.com"
