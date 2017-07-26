@@ -1,17 +1,12 @@
+execute pathogen#infect()
 syntax on
 filetype plugin indent on
-
-let mapleader = ","
-let Tlist_Ctags_Cmd = "/usr/bin/ctags"
-let Tlist_WinWidth = 50
-map <F4> :TlistToggle<cr>
 
 set nocompatible
 set ignorecase " Eg /-style searches will ignore case
 set smartcase
 set title " In xterm, set the name of the current file as title
 set scrolloff=3 " More context around cursor
-set smartindent
 set tabstop=2
 set shiftwidth=2
 set expandtab
